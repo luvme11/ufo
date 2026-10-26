@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-26T22:52:29.317Z",
+  "updatedAt": "2026-10-26T23:09:56.346Z",
   "panels": [
     {
       "subject": "ミ",
@@ -14,6 +14,7 @@
       "eyebrow": "미 / ミ",
       "subtitle": "T E S T",
       "body": "자기소개",
+      "homeImage": "",
       "footer": "TRANSMISSION ACTIVE",
       "points": [
         {
