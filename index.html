@@ -341,10 +341,18 @@ body:not(.ship-interior-ready) #adminBtn { display: none !important; }
 .view-home { --accent:#87f5d3; }
 .home-frame {padding:23px 22px 21px;background:radial-gradient(circle at 94% 18%,rgba(102,249,210,.12),transparent 42%),linear-gradient(155deg,#102b2e,#091720 82%);}
 .home-head {display:grid;grid-template-columns:102px minmax(0,1fr);gap:18px;align-items:center;}
-.home-portrait {height:116px;position:relative;border:1px solid #337f75;display:grid;place-items:center;border-radius:9px;
+.home-portrait {height:116px;position:relative;border:1px solid #337f75;display:grid;place-items:center;border-radius:9px;overflow:hidden;
 background:repeating-linear-gradient(0deg,transparent,transparent 13px,rgba(102,247,202,.06) 14px),radial-gradient(circle,#193e3c 0,#0c2027 80%);}
 .home-portrait svg {width:76px;height:87px;filter:drop-shadow(0 0 13px rgba(105,255,205,.3));}
-.home-portrait::before,.home-portrait::after {content:'';position:absolute;width:15px;height:15px;border:2px solid #87f5d3;}
+.home-portrait .portrait-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;
+filter:saturate(.72) hue-rotate(-8deg) brightness(.82) contrast(1.03) sepia(.08);
+opacity:.92;mix-blend-mode:screen;}
+.home-portrait .portrait-tint{position:absolute;inset:0;pointer-events:none;background:
+linear-gradient(180deg,rgba(128,255,215,.15),rgba(18,53,58,.1) 38%,rgba(7,27,35,.24)),
+radial-gradient(circle at 50% 34%,rgba(132,255,214,.17),transparent 48%);
+}
+.home-portrait .portrait-frame{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 13px,rgba(102,247,202,.06) 14px);opacity:.9}
+.home-portrait::before,.home-portrait::after {content:'';position:absolute;width:15px;height:15px;border:2px solid #87f5d3;z-index:2;}
 .home-portrait::before {left:6px;top:6px;border-right:0;border-bottom:0;}.home-portrait::after {right:6px;bottom:6px;border-top:0;border-left:0;}
 .home-kicker {color:#8cf8d6;font:9px 'Space Mono',monospace;letter-spacing:.15em;margin:0 0 10px;}
 .home-code {font:10px 'Space Mono',monospace;color:#7ba8a3;margin:11px 0 0;}
@@ -1588,7 +1596,12 @@ input, textarea, [contenteditable="true"], [contenteditable=""], [contenteditabl
       <div class="view-header"><span class="view-eyebrow">01 / IDENTITY</span><span class="view-pill">WELCOME ABOARD</span></div>
       <div class="home-frame">
         <div class="home-head">
-          <div class="home-portrait" aria-hidden="true"><svg viewBox="0 0 80 90" fill="none"><path d="M18 87C17 69 25 63 40 63C55 63 63 69 62 87" stroke="#9cffe1" stroke-width="2"/><path d="M17 30C15 8 61 8 63 30C64 55 53 67 40 67C27 67 16 55 17 30Z" stroke="#9cffe1" stroke-width="2"/><ellipse cx="30" cy="37" rx="6.5" ry="11" fill="#9cffe1" opacity=".8"/><ellipse cx="50" cy="37" rx="6.5" ry="11" fill="#9cffe1" opacity=".8"/><circle cx="40" cy="56" r="2" fill="#caffef"/><path d="M18 20L10 12M62 20L70 12" stroke="#64bba7" stroke-width="2"/></svg></div>
+          <div class="home-portrait" aria-label="메인 이미지 미리보기">
+            <img id="homePortraitImg" class="portrait-image" alt="메인 패널 이미지" hidden referrerpolicy="no-referrer">
+            <div class="portrait-tint" aria-hidden="true"></div>
+            <div class="portrait-frame" aria-hidden="true"></div>
+            <svg id="homePortraitFallback" viewBox="0 0 80 90" fill="none" aria-hidden="true"><path d="M18 87C17 69 25 63 40 63C55 63 63 69 62 87" stroke="#9cffe1" stroke-width="2"/><path d="M17 30C15 8 61 8 63 30C64 55 53 67 40 67C27 67 16 55 17 30Z" stroke="#9cffe1" stroke-width="2"/><ellipse cx="30" cy="37" rx="6.5" ry="11" fill="#9cffe1" opacity=".8"/><ellipse cx="50" cy="37" rx="6.5" ry="11" fill="#9cffe1" opacity=".8"/><circle cx="40" cy="56" r="2" fill="#caffef"/><path d="M18 20L10 12M62 20L70 12" stroke="#64bba7" stroke-width="2"/></svg>
+          </div>
           <div><p class="home-kicker" id="homeEyebrow">PROFILE / 0001</p><h2 class="view-title" id="reportTitle">메인</h2><div class="home-code" id="homeSubtitle">VISITOR RECORD · UFO-07</div></div>
         </div>
         <div class="home-summary"><p class="view-lead" id="homeBody"></p></div>
@@ -1931,7 +1944,7 @@ input, textarea, [contenteditable="true"], [contenteditable=""], [contenteditabl
     var data=[
       { title:'메인', eyebrow:'WELCOME / PROFILE', subtitle:'VISITOR IDENTIFICATION',
         body:'우주선에 오신 것을 환영합니다. 이곳에 자기소개나 안내말을 적어주세요.',
-        subject:'이름을 입력해 주세요',caseNumber:'VISITOR-001',date:'2026.10.27',
+        subject:'이름을 입력해 주세요',caseNumber:'VISITOR-001',date:'2026.10.27', homeImage:'',
         footer:'TRANSMISSION ACTIVE',
         points:[{heading:'ABOUT',detail:'소개할 내용을 입력해 주세요.'},{heading:'MESSAGE',detail:'방문자에게 전할 한마디를 적어주세요.'},{heading:'LINK',detail:'링크나 부가 정보를 적을 수 있어요.'}]},
       { title:'성향',eyebrow:'PERSONALITY / ANALYSIS',subtitle:'PERSONALITY NOTES',
@@ -1969,7 +1982,7 @@ input, textarea, [contenteditable="true"], [contenteditable=""], [contenteditabl
       var old = raw.panels[index];
       if (!old || typeof old !== 'object') return copyObj(def);
       var p = copyObj(def);
-      ['eyebrow','title','subtitle','subject','operator','date','caseNumber','body','sectionTitle','footer','signature','stamp'].forEach(function (key) {
+      ['eyebrow','title','subtitle','subject','operator','date','caseNumber','body','sectionTitle','footer','signature','stamp','homeImage'].forEach(function (key) {
         if (typeof old[key] === 'string') p[key] = old[key];
       });
       if (Array.isArray(old.points)) p.points = def.points.map(function (point, i) {
@@ -2103,6 +2116,23 @@ input, textarea, [contenteditable="true"], [contenteditable=""], [contenteditabl
     try{var parsed=new URL(value);return (parsed.protocol==='http:'||parsed.protocol==='https:')?parsed.href:null;}
     catch(_){return null;}
   }
+  function safeImageSrc(value){
+    if(typeof value!=='string'||!value.trim()) return null;
+    var raw=value.trim();
+    if(/^data:image\/[a-zA-Z0-9.+-]+;base64,[a-zA-Z0-9+/=\s]+$/.test(raw)) return raw.replace(/\s+/g,'');
+    return safeHttpUrl(raw);
+  }
+  function setPortraitImage(id,imgValue,fallbackId){
+    var img=$(id),fallback=$(fallbackId);
+    if(!img||!fallback) return;
+    var src=safeImageSrc(imgValue);
+    if(!src){
+      img.hidden=true;img.removeAttribute('src');fallback.hidden=false;return;
+    }
+    img.hidden=false;img.src=src;fallback.hidden=true;
+    img.onerror=function(){img.hidden=true;img.removeAttribute('src');fallback.hidden=false;};
+    img.onload=function(){fallback.hidden=true;};
+  }
   function renderCareDocument(node,raw){
     node.replaceChildren();
     var lines=String(raw||'').replace(/\r\n?/g,'\n').split('\n');
@@ -2136,6 +2166,7 @@ input, textarea, [contenteditable="true"], [contenteditable=""], [contenteditabl
     if(index===0){
       setText('homeEyebrow',p.eyebrow);setText('reportTitle',p.title);setText('homeSubtitle',p.subtitle);
       setRich('homeBody',p.body);setRich('homeSubject',p.subject);setRich('homeCase',p.caseNumber);setRich('homeDate',p.date);setRich('homeFooter',p.footer);
+      setPortraitImage('homePortraitImg',p.homeImage,'homePortraitFallback');
       var notes=$('homeNotes');notes.replaceChildren();
       p.points.forEach(function(x,i){var row=addText('div','home-note','');var num=addText('span','num','0'+(i+1));var info=addText('div','', '');info.append(addRich('strong','',x.heading),addRich('p','',x.detail));row.append(num,info);notes.append(row);});
     } else if(index===1){
@@ -2369,7 +2400,8 @@ input, textarea, [contenteditable="true"], [contenteditable=""], [contenteditabl
     if(activeEditor===0){
       form+='<div class="edit-section-label">프로필 기본 정보</div>'
         +'<div class="report-edit-columns"><div>'+editField('표시 이름','subject',p.subject,false)+editField('작성 날짜','date',p.date,false)
-        +'</div><div>'+editField('프로필 코드','caseNumber',p.caseNumber,false)+'</div></div>';
+        +'</div><div>'+editField('프로필 코드','caseNumber',p.caseNumber,false)+editField('왼쪽 이미지 주소','homeImage',p.homeImage||'',false)+'</div></div>'
+        +'<p class="report-editor-footnote">메인 왼쪽 이미지는 https:// 주소 또는 data:image;base64 형식으로 넣을 수 있어요. 이미지가 없으면 기본 외계인 도안이 표시됩니다.</p>';
     }
     if(activeEditor===3){
       form += '<div class="edit-section-label">배려 캐릭터 명단 · 자유 글 작성</div>'
