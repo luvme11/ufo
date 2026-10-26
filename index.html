@@ -209,6 +209,7 @@ body {
 .btn:hover, .btn:focus-visible {
   outline: none; border-color: rgba(125,255,200,.72); color: var(--beam); box-shadow: 0 0 14px rgba(125,255,200,.18);
 }
+.admin-actions .btn:disabled{opacity:.48;cursor:wait;pointer-events:none}
 .btn.primary {
   background: linear-gradient(180deg, rgba(126,255,205,.22), rgba(85,191,159,.18));
   border-color: rgba(125,255,200,.45);
@@ -1649,24 +1650,29 @@ input, textarea, [contenteditable="true"], [contenteditable=""], [contenteditabl
       </aside>
       <div class="admin-content">
         <section class="admin-section" id="adminSection-github">
-          <p class="admin-note">GitHub 연동 준비용 설정입니다. 토큰은 보안을 위해 브라우저에 영구 저장하지 않으며, 이 버전은 아직 GitHub에 실제 게시하지 않습니다.</p>
+          <p class="admin-note">GitHub 저장소에 <b>실제로 게시</b>할 수 있습니다. 토큰은 이 페이지를 사용하는 동안에만 입력창에 보관하며, HTML·로컬 저장소·GitHub 파일에는 넣지 않습니다. 공개 저장소에 게시된 글은 방문자 화면에서도 자동으로 불러옵니다.</p>
           <div class="github-grid">
-            <div class="stack"><label for="ghToken">GitHub Token</label><input class="input" id="ghToken" type="password" placeholder="ghp_xxxxxxxxxxxxxx"></div>
-            <div class="stack"><label for="ghOwner">Owner / Username</label><input class="input" id="ghOwner" type="text" placeholder="username"></div>
-            <div class="stack"><label for="ghRepo">Repository</label><input class="input" id="ghRepo" type="text" placeholder="my-ufo-site"></div>
+            <div class="stack"><label for="ghToken">GitHub Token (세션에서만 사용)</label><input class="input" id="ghToken" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_... / ghp_..."></div>
+            <div class="stack"><label for="ghOwner">Owner / Username</label><input class="input" id="ghOwner" type="text" placeholder="GitHub 사용자명"></div>
+            <div class="stack"><label for="ghRepo">Repository</label><input class="input" id="ghRepo" type="text" placeholder="저장소 이름"></div>
             <div class="stack"><label for="ghBranch">Branch</label><input class="input" id="ghBranch" type="text" placeholder="main"></div>
             <div class="stack"><label for="ghPath">Data Path</label><input class="input" id="ghPath" type="text" placeholder="data/ufo-admin.json"></div>
             <div class="panel-card">
               <h4>연결 메모</h4>
-              <p class="mini-note">이 페이지는 설정값 입력과 저장을 위한 UI입니다. 실제 GitHub API 업로드/커밋까지 연결하려면 토큰을 사용해 fetch 로직을 추가하면 됩니다.</p>
-              <p class="mini-note">소개말은 현재 이 브라우저에 저장됩니다. 다른 방문자에게 동일하게 공개하려면 실제 GitHub 콘텐츠 연동이 추가로 필요합니다.</p>
+              <p class="mini-note">① 「GitHub 설정 저장」: 토큰을 제외한 설정만 이 브라우저에 저장합니다.</p>
+              <p class="mini-note">② 「GitHub에 게시」: 메인·성향·NG·배려 리스트를 JSON 파일로 실제 커밋합니다.</p>
+              <p class="mini-note">③ 「GitHub에서 불러오기」: 현재 저장소의 공개 데이터를 가져옵니다. 비공개 저장소는 토큰이 있어야 읽을 수 있고 일반 방문자에게는 보이지 않습니다.</p>
+              <p class="mini-note">토큰 권한: 선택한 저장소의 Contents → Read and write. GitHub에 게시된 데이터 파일에는 토큰이 포함되지 않습니다.</p>
             </div>
           </div>
           <div class="admin-actions">
             <button class="btn" id="githubResetBtn" type="button">GitHub 입력 비우기</button>
-            <button class="btn primary" id="githubSaveBtn" type="button">GitHub 설정 저장</button>
+            <button class="btn" id="githubSaveBtn" type="button">설정만 저장</button>
+            <button class="btn" id="githubPullBtn" type="button">GitHub에서 불러오기</button>
+            <button class="btn primary" id="githubPublishBtn" type="button">GitHub에 게시</button>
           </div>
           <div class="admin-status" id="githubStatus" aria-live="polite"></div>
+          <div class="mini-note" id="githubCommitLink" aria-live="polite"></div>
         </section>
 
         <section class="admin-section" id="adminSection-panels" hidden>
@@ -1699,7 +1705,7 @@ input, textarea, [contenteditable="true"], [contenteditable=""], [contenteditabl
                 <li>우주선 내부의 네모 모니터 4개를 클릭하면 작은 팝업이 열립니다.</li>
                 <li>방문자용 팝업은 읽기 전용이며 04 배려 리스트는 관리자에서 꾸민 글이 그대로 표시됩니다.</li>
                 <li>상단 톱니바퀴 버튼을 누르면 관리자 패널이 열립니다.</li>
-                <li>관리자에서 각 화면별 글을 편집하고, 링크 삽입으로 글씨에 외부 주소를 연결할 수 있습니다.</li>
+                <li>콘텐츠 편집에서 글을 수정한 뒤 GitHub 설정 → 「GitHub에 게시」를 누르면 사이트 방문자도 같은 내용을 볼 수 있습니다.</li>
               </ol>
             </div>
             <div class="panel-card">
@@ -1942,7 +1948,7 @@ input, textarea, [contenteditable="true"], [contenteditable=""], [contenteditabl
   };
   var defaults = {
     panels: [0,1,2,3].map(defaultPanelReport),
-    github: { token: '', owner: '', repo: '', branch: 'main', path: 'data/ufo-admin.json' }
+    github: { token: '', owner: 'luvme11', repo: 'ufo', branch: 'main', path: 'data/ufo-admin.json' }
   };
   var storeKey = 'ufoAlienPanelVariantsV2'; // Keep versioned content separate from old report template.
   var state = loadState();
@@ -2422,18 +2428,164 @@ input, textarea, [contenteditable="true"], [contenteditable=""], [contenteditabl
     saveState();
     refreshPreviews();
     if(!consoleOverlay.hidden) fillConsolePopup(activeConsole);
-    showStatus('panelStatus',viewNames[activeEditor]+' 화면이 저장되었습니다.');
+    try{localStorage.setItem(localDraftFlag,'1');}catch(_){}
+    showStatus('panelStatus',viewNames[activeEditor]+' 화면을 임시 저장했습니다. 공개하려면 GitHub 설정 → GitHub에 게시를 누르세요.');
   }
   function resetEditor() {
     state.panels[activeEditor]=copyObj(defaults.panels[activeEditor]);
     saveState();buildPanelEditors();refreshPreviews();
+    try{localStorage.setItem(localDraftFlag,'1');}catch(_){}
     if(!consoleOverlay.hidden) fillConsolePopup(activeConsole);
     showStatus('panelStatus',viewNames[activeEditor]+' 화면을 기본값으로 복원했습니다.');
   }
-  function syncGithubFields(){Object.keys(ghFields).forEach(function(k){ghFields[k].value=state.github[k]||'';});}
+  function syncGithubFields(){
+    ['owner','repo','branch','path'].forEach(function(k){ghFields[k].value=state.github[k]||'';});
+    ghFields.token.value=''; // Personal access tokens must never be saved or prefilled.
+  }
   function saveGithubFields(){
-    Object.keys(ghFields).forEach(function(k){state.github[k]=ghFields[k].value.trim();});
-    saveState();showStatus('githubStatus','GitHub 설정(토큰 제외)이 저장되었습니다. GitHub 원격 게시 기능은 아직 연결되지 않았습니다.');
+    ['owner','repo','branch','path'].forEach(function(k){state.github[k]=ghFields[k].value.trim();});
+    state.github.token='';
+    saveState();
+    githubStatus('설정만 저장했습니다. 실제로 공개하려면 「GitHub에 게시」를 눌러주세요.');
+  }
+  var localDraftFlag='ufoLocalEditsNotPublishedV1';
+  var syncedMarker='ufoRemotePublishedV1';
+  var githubBusy=false;
+  function githubStatus(message,isError){
+    var el=$('githubStatus');el.textContent=message;
+    el.style.color=isError?'#ffb5be':'#b8ffe5';
+  }
+  function githubInputConfig(){
+    var c={};
+    ['owner','repo','branch','path'].forEach(function(k){c[k]=ghFields[k].value.trim();});
+    if(!/^[a-zA-Z0-9-]{1,39}$/.test(c.owner))throw Error('Owner / Username을 확인해 주세요.');
+    if(!/^[a-zA-Z0-9_.-]{1,100}$/.test(c.repo)||c.repo==='.'||c.repo==='..')throw Error('Repository 이름을 확인해 주세요.');
+    if(!c.branch||/\s/.test(c.branch)||/\.\./.test(c.branch))throw Error('Branch 이름을 확인해 주세요.');
+    var sections=c.path.split('/');
+    if(!sections.length||sections.some(function(part){return !part||part==='.'||part==='..'||/[?#\\]/.test(part);})||!c.path.endsWith('.json')){
+      throw Error('Data Path는 data/ufo-admin.json처럼 입력해 주세요.');
+    }
+    return c;
+  }
+  function githubEndpoint(c){
+    return 'https://api.github.com/repos/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo)+'/contents/'
+      +c.path.split('/').map(encodeURIComponent).join('/');
+  }
+  function githubHeaders(token){
+    var headers={'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
+    if(token)headers.Authorization='Bearer '+token;
+    return headers;
+  }
+  async function githubJSON(response){
+    var result=await response.json().catch(function(){return {};});
+    if(!response.ok){
+      var m=result&&typeof result.message==='string'?result.message:'';
+      var details={
+        401:'토큰이 잘못되었거나 만료되었습니다.',
+        403:'접근 권한이 없습니다. 토큰 Contents: Read and write 권한과 접근 제한을 확인해 주세요.',
+        404:'저장소/파일을 찾지 못했습니다. Owner, Repository, Branch와 토큰 접근 권한을 확인해 주세요.',
+        409:'다른 곳에서 파일이 변경되었거나 충돌했습니다. 최신 내용을 확인해 주세요.',
+        422:'파일 경로, 브랜치 또는 요청값을 확인해 주세요.'
+      };
+      throw Error('GitHub 오류 '+response.status+' — '+(details[response.status]||m||'서버가 요청을 거부했습니다.'));
+    }
+    return result;
+  }
+  function githubEncodeUtf8(s){
+    var bytes=new TextEncoder().encode(s),binary='';
+    for(var i=0;i<bytes.length;i+=8192){binary+=String.fromCharCode.apply(null,bytes.subarray(i,i+8192));}
+    return btoa(binary);
+  }
+  function githubDecodeUtf8(base64){
+    var str=atob(String(base64||'').replace(/\s/g,''));
+    var bytes=new Uint8Array(str.length);
+    for(var i=0;i<str.length;i++)bytes[i]=str.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+  function githubReadContent(data){
+    if(!data||data.type!=='file'||typeof data.content!=='string')throw Error('GitHub 파일을 읽을 수 없습니다. JSON 파일인지 확인해 주세요.');
+    var raw=JSON.parse(githubDecodeUtf8(data.content));
+    if(!raw||!Array.isArray(raw.panels)||raw.panels.length!==4)throw Error('저장소의 데이터 형식이 맞지 않습니다(01~04 화면 데이터 필요).');
+    return raw;
+  }
+  function savePublicPanels(raw){
+    state.panels=mergeState({panels:raw.panels}).panels;
+    saveState();
+    try{localStorage.removeItem(localDraftFlag);localStorage.setItem(syncedMarker,'1');}catch(_){}
+    buildPanelEditors();refreshPreviews();
+    if(!consoleOverlay.hidden)fillConsolePopup(activeConsole);
+  }
+  function hasUnsyncedDraft(){
+    try{return localStorage.getItem(localDraftFlag)==='1'||
+      (!!localStorage.getItem(storeKey)&&localStorage.getItem(syncedMarker)!=='1');}
+    catch(_){return false;}
+  }
+  async function githubRead(c,token,allowMissing){
+    var url=githubEndpoint(c)+'?ref='+encodeURIComponent(c.branch);
+    var result;
+    try {result=await fetch(url,{method:'GET',headers:githubHeaders(token),cache:'no-store'});}
+    catch(err){throw Error('GitHub 접속 실패: 네트워크 또는 브라우저의 CORS 설정을 확인해 주세요.');}
+    if(result.status===404&&allowMissing)return null;
+    return await githubJSON(result);
+  }
+  function setGithubBusy(busy){
+    githubBusy=busy;
+    ['githubPullBtn','githubPublishBtn'].forEach(function(id){$(id).disabled=busy;});
+  }
+  async function githubPull(manual){
+    if(githubBusy)return;
+    if(!manual&&hasUnsyncedDraft())return;
+    if(manual&&hasUnsyncedDraft()&&!window.confirm('이 브라우저에 아직 GitHub로 게시하지 않은 수정본이 있을 수 있습니다. GitHub의 글로 덮어쓸까요?'))return;
+    setGithubBusy(true);
+    if(manual)githubStatus('GitHub에서 데이터를 불러오는 중...');
+    try{
+      var c=githubInputConfig();
+      var token=manual?ghFields.token.value.trim():'';
+      var file=await githubRead(c,token,manual?false:true);
+      if(!file){if(manual)githubStatus('아직 GitHub에 데이터 파일이 없습니다. 먼저 「GitHub에 게시」하세요.');return;}
+      var remote=githubReadContent(file);
+      savePublicPanels(remote);
+      if(manual)githubStatus('GitHub에서 01~04 내용을 불러왔습니다.');
+    }catch(err){if(manual)githubStatus(err.message,true);else console.info('공개 GitHub 데이터 불러오기 생략:',err.message);}
+    finally{setGithubBusy(false);}
+  }
+  async function githubPublish(){
+    if(githubBusy)return;
+    setGithubBusy(true);
+    $('githubCommitLink').replaceChildren();
+    githubStatus('GitHub에 게시 중...');
+    try{
+      var c=githubInputConfig(),token=ghFields.token.value.trim();
+      if(!token)throw Error('GitHub Token을 입력한 뒤 다시 눌러주세요.');
+      if(!/^((ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+)$/.test(token)){
+        throw Error('GitHub Token 형식을 확인해 주세요. (github_pat_... 또는 ghp_...)');
+      }
+      // Do not publish a snapshot older than text currently typed in the editor.
+      if(panelEditorGrid&&panelEditorGrid.querySelector('[data-edit-key]'))collectEditorDraft();
+      saveState();
+      var old=await githubRead(c,token,true);
+      if(old&&old.type!=='file')throw Error('Data Path가 기존 폴더를 가리킵니다.');
+      var payload={version:1,updatedAt:new Date().toISOString(),panels:state.panels};
+      var body={message:'Update UFO site contents',content:githubEncodeUtf8(JSON.stringify(payload,null,2)+'\n'),branch:c.branch};
+      if(old&&old.sha)body.sha=old.sha;
+      var response;
+      try{response=await fetch(githubEndpoint(c),{
+        method:'PUT',headers:Object.assign({'Content-Type':'application/json'},githubHeaders(token)),body:JSON.stringify(body)
+      });}catch(err){throw Error('GitHub 게시 요청을 전송하지 못했습니다. 네트워크 또는 CORS 설정을 확인해 주세요.');}
+      var result=await githubJSON(response);
+      if(!result.commit||!result.commit.sha)throw Error('GitHub에서 커밋 확인 응답이 오지 않았습니다.');
+      ['owner','repo','branch','path'].forEach(function(k){state.github[k]=c[k];});
+      state.github.token='';
+      saveState();
+      try{localStorage.removeItem(localDraftFlag);localStorage.setItem(syncedMarker,'1');}catch(_){}
+      refreshPreviews();
+      if(!consoleOverlay.hidden)fillConsolePopup(activeConsole);
+      githubStatus('게시 성공! GitHub에 파일이 실제로 커밋되었습니다. ('+result.commit.sha.slice(0,7)+')');
+      var a=document.createElement('a');a.href='https://github.com/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo)+'/blob/'+encodeURIComponent(c.branch)+'/'+c.path.split('/').map(encodeURIComponent).join('/');
+      a.textContent='GitHub에 게시된 파일 확인 ↗';a.target='_blank';a.rel='noopener noreferrer';a.style.color='#8fffd4';
+      $('githubCommitLink').append(a);
+    }catch(err){githubStatus(err.message,true);}
+    finally{setGithubBusy(false);}
   }
   function setAdminTab(tab) {
     document.querySelectorAll('.admin-nav-btn').forEach(function(btn){btn.classList.toggle('active',btn.dataset.adminTab===tab);});
@@ -2447,6 +2599,8 @@ input, textarea, [contenteditable="true"], [contenteditable=""], [contenteditabl
   function closeAdmin(){adminShell.hidden=true;if(consoleOverlay.hidden)document.body.style.overflow='';}
   buildPanelEditors();refreshPreviews();syncGithubFields();setAdminTab('github');
   document.documentElement.dataset.consoleReady='true';
+  // Public visitors load committed content without needing or seeing the owner token.
+  githubPull(false);
   document.querySelectorAll('.console-hotspot').forEach(function(el){
     function activate(){if (phase === 'inside') openConsole(Number(el.dataset.console));}
     el.addEventListener('click',activate);
@@ -2459,8 +2613,10 @@ input, textarea, [contenteditable="true"], [contenteditable=""], [contenteditabl
   $('adminClose').addEventListener('click',closeAdmin);
   $('consoleClose').addEventListener('click',closeConsole);
   $('githubSaveBtn').addEventListener('click',saveGithubFields);
+  $('githubPullBtn').addEventListener('click',function(){githubPull(true);});
+  $('githubPublishBtn').addEventListener('click',githubPublish);
   $('githubResetBtn').addEventListener('click',function(){
-    state.github=copyObj(defaults.github);syncGithubFields();saveState();showStatus('githubStatus','설정 입력값을 초기화했습니다.');
+    state.github=copyObj(defaults.github);syncGithubFields();saveState();githubStatus('GitHub 설정값을 초기화했습니다.');
   });
   $('panelSaveAllBtn').addEventListener('click',savePanelEditors);
   $('panelResetAllBtn').addEventListener('click',resetEditor);
