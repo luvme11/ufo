@@ -527,6 +527,22 @@ html, body, body *, body *::before, body *::after {
 input, textarea, [contenteditable="true"], [contenteditable=""], [contenteditable="plaintext-only"] {
   cursor: text !important;
 }
+
+/* File picker for the 01 portrait image. */
+.home-file-edit{display:flex;gap:15px;align-items:flex-start;padding:14px;border:1px solid rgba(125,255,200,.21);border-radius:13px;background:rgba(57,139,122,.075);margin-bottom:12px}
+.home-file-thumb{flex:none;width:94px;height:110px;display:grid;place-items:center;border-radius:8px;overflow:hidden;border:1px solid rgba(125,255,200,.3);background:#0b2730;color:#739d99;font-size:11px;text-align:center}
+.home-file-thumb img{display:block;width:100%;height:100%;object-fit:cover}
+.home-file-thumb img[hidden],.home-file-thumb span[hidden]{display:none}
+.home-file-actions{display:grid;align-content:start;justify-items:start;gap:9px;min-width:0;flex:1}
+.home-file-select{display:inline-block;border:1px solid rgba(125,255,200,.55);border-radius:10px;background:rgba(78,183,158,.18);color:#d6fff0;padding:10px 15px;font-size:12px;cursor:pointer}
+.home-file-select:hover{background:rgba(78,183,158,.28)}
+.home-file-select input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.home-upload-feedback{margin:0;color:#a7f6d6;font-size:12px;line-height:1.5}
+.gh-token-remember{display:flex;align-items:center;gap:8px;color:#b3f6df!important;font-size:12px!important;cursor:pointer}
+.gh-token-remember input{accent-color:#83efc8;width:15px;height:15px}
+.gh-forget{border:0;background:transparent;color:#f3abb5;text-decoration:underline;font-size:12px;cursor:pointer;padding:0}
+.gh-token-warning{font-size:11px;line-height:1.6;color:#a0aeb8}
+@media(max-width:520px){.home-file-edit{gap:10px}.home-file-thumb{width:76px;height:91px}}
 </style>
 
 <div class="stage">
@@ -1663,19 +1679,23 @@ input, textarea, [contenteditable="true"], [contenteditable=""], [contenteditabl
       </aside>
       <div class="admin-content">
         <section class="admin-section" id="adminSection-github">
-          <p class="admin-note">GitHub 저장소에 <b>실제로 게시</b>할 수 있습니다. 토큰은 이 페이지를 사용하는 동안에만 입력창에 보관하며, HTML·로컬 저장소·GitHub 파일에는 넣지 않습니다. 공개 저장소에 게시된 글은 방문자 화면에서도 자동으로 불러옵니다.</p>
+          <p class="admin-note">GitHub 저장소에 <b>실제로 게시</b>할 수 있습니다. 토큰은 아래 「이 기기에 기억하기」를 선택하면 현재 브라우저에 유지됩니다. HTML 파일이나 GitHub의 게시 JSON에는 포함되지 않습니다.</p>
           <div class="github-grid">
-            <div class="stack"><label for="ghToken">GitHub Token (세션에서만 사용)</label><input class="input" id="ghToken" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_... / ghp_..."></div>
+            <div class="stack"><label for="ghToken">GitHub Token</label><input class="input" id="ghToken" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_... / ghp_...">
+              <label class="gh-token-remember"><input type="checkbox" id="ghRememberToken" checked> 이 브라우저에 토큰 기억하기 (새로고침 후에도 유지)</label>
+              <button class="gh-forget" id="ghForgetToken" type="button">저장된 토큰 삭제</button>
+              <span class="gh-token-warning">주의: 기억한 토큰은 이 브라우저의 로컬 저장소에 보관되어 이 사이트에서 실행되는 스크립트나 브라우저 확장 프로그램이 접근할 수 있어요. 개인 기기에서만 사용하세요.</span>
+            </div>
             <div class="stack"><label for="ghOwner">Owner / Username</label><input class="input" id="ghOwner" type="text" placeholder="GitHub 사용자명"></div>
             <div class="stack"><label for="ghRepo">Repository</label><input class="input" id="ghRepo" type="text" placeholder="저장소 이름"></div>
             <div class="stack"><label for="ghBranch">Branch</label><input class="input" id="ghBranch" type="text" placeholder="main"></div>
             <div class="stack"><label for="ghPath">Data Path</label><input class="input" id="ghPath" type="text" placeholder="data/ufo-admin.json"></div>
             <div class="panel-card">
               <h4>연결 메모</h4>
-              <p class="mini-note">① 「GitHub 설정 저장」: 토큰을 제외한 설정만 이 브라우저에 저장합니다.</p>
+              <p class="mini-note">① 「설정만 저장」: 저장소 설정을 저장합니다. 「이 브라우저에 토큰 기억하기」가 켜져 있으면 토큰도 이 브라우저에만 유지됩니다.</p>
               <p class="mini-note">② 「GitHub에 게시」: 메인·성향·NG·배려 리스트를 JSON 파일로 실제 커밋합니다.</p>
               <p class="mini-note">③ 「GitHub에서 불러오기」: 현재 저장소의 공개 데이터를 가져옵니다. 비공개 저장소는 토큰이 있어야 읽을 수 있고 일반 방문자에게는 보이지 않습니다.</p>
-              <p class="mini-note">토큰 권한: 선택한 저장소의 Contents → Read and write. GitHub에 게시된 데이터 파일에는 토큰이 포함되지 않습니다.</p>
+              <p class="mini-note">토큰은 해당 저장소의 Contents → Read and write 권한만 부여한 fine-grained 토큰을 권장해요. 공용 PC에서는 기억하기를 꺼주세요. 게시된 콘텐츠에는 토큰이 포함되지 않습니다.</p>
             </div>
           </div>
           <div class="admin-actions">
@@ -2400,8 +2420,14 @@ input, textarea, [contenteditable="true"], [contenteditable=""], [contenteditabl
     if(activeEditor===0){
       form+='<div class="edit-section-label">프로필 기본 정보</div>'
         +'<div class="report-edit-columns"><div>'+editField('표시 이름','subject',p.subject,false)+editField('작성 날짜','date',p.date,false)
-        +'</div><div>'+editField('프로필 코드','caseNumber',p.caseNumber,false)+editField('왼쪽 이미지 주소','homeImage',p.homeImage||'',false)+'</div></div>'
-        +'<p class="report-editor-footnote">메인 왼쪽 이미지는 https:// 주소 또는 data:image;base64 형식으로 넣을 수 있어요. 이미지가 없으면 기본 외계인 도안이 표시됩니다.</p>';
+        +'</div><div>'+editField('프로필 코드','caseNumber',p.caseNumber,false)+'</div></div>'
+        +'<div class="edit-section-label">왼쪽 프로필 이미지 · 파일로 등록</div>'
+        +'<div class="home-file-edit"><div class="home-file-thumb"><img id="homeFilePreview" alt="선택된 프로필 이미지" hidden><span id="homeFileEmpty">이미지 없음</span></div>'
+        +'<div class="home-file-actions"><label class="home-file-select" for="homeImageUpload">▧ 이미지 파일 선택<input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/avif" id="homeImageUpload"></label>'
+        +'<button class="btn" type="button" id="homeImageRemove">이미지 삭제</button>'
+        +'<p class="mini-note">PNG·JPG·WebP·GIF·AVIF · 최대 12MB. 등록하면 크기를 줄여 이 HTML의 콘텐츠 데이터에 포함합니다. GitHub에 게시하면 이미지도 함께 공개돼요. GIF는 첫 장만 사용합니다.</p>'
+        +'<p class="home-upload-feedback" id="homeUploadFeedback" role="status"></p></div></div>'
+        +'<input type="hidden" data-edit-key="homeImage" id="homeImageData">';
     }
     if(activeEditor===3){
       form += '<div class="edit-section-label">배려 캐릭터 명단 · 자유 글 작성</div>'
@@ -2441,8 +2467,79 @@ input, textarea, [contenteditable="true"], [contenteditable=""], [contenteditabl
     form+=editField(activeEditor===3?'하단 안내 문구':'하단 상태 문구','footer',p.footer,activeEditor===3)
       +'<p class="report-editor-footnote">글씨 꾸미기·링크·이미지를 입력한 뒤 「현재 화면 저장」을 누르세요. 방문자에게는 편집 기능이 표시되지 않습니다.</p></div>';
     panelEditorGrid.innerHTML=form;
+    if(activeEditor===0){
+      $('homeImageData').value=p.homeImage||'';
+      updateHomeFilePreview();
+    }
     if(activeEditor===3) refreshCarePreview();
   }
+
+  /* File upload for 01 profile image: compact base64 WebP goes into panel content,
+     so it persists locally and publishes with data/ufo-admin.json automatically. */
+  var homeUploading=false;
+  function updateHomeFilePreview(){
+    var field=$('homeImageData'),preview=$('homeFilePreview'),empty=$('homeFileEmpty');
+    if(!field||!preview||!empty)return;
+    var url=safeImageSrc(field.value);
+    if(url){preview.src=url;preview.hidden=false;empty.hidden=true;}
+    else{preview.hidden=true;preview.removeAttribute('src');empty.hidden=false;}
+  }
+  function imageFileToDataUrl(file){
+    return new Promise(function(resolve,reject){
+      if(!file||!/^image\/(png|jpeg|webp|gif|avif)$/i.test(file.type)){
+        reject(Error('PNG, JPG, WebP, GIF, AVIF 이미지 파일을 선택해 주세요.'));return;
+      }
+      if(file.size>12*1024*1024){reject(Error('파일은 12MB 이하로 선택해 주세요.'));return;}
+      var objectUrl=URL.createObjectURL(file),image=new Image();
+      image.onload=function(){
+        URL.revokeObjectURL(objectUrl);
+        try{
+          var limit=640,ratio=Math.min(1,limit/Math.max(image.naturalWidth,image.naturalHeight));
+          var canvas=document.createElement('canvas');
+          canvas.width=Math.max(1,Math.round(image.naturalWidth*ratio));
+          canvas.height=Math.max(1,Math.round(image.naturalHeight*ratio));
+          var context=canvas.getContext('2d');
+          if(!context)throw Error('이미지 변환을 사용할 수 없습니다.');
+          context.drawImage(image,0,0,canvas.width,canvas.height);
+          var result=canvas.toDataURL('image/webp',.79);
+          if(result.length>350000){
+            ratio=Math.min(1,480/Math.max(image.naturalWidth,image.naturalHeight));
+            canvas.width=Math.max(1,Math.round(image.naturalWidth*ratio));
+            canvas.height=Math.max(1,Math.round(image.naturalHeight*ratio));
+            context.drawImage(image,0,0,canvas.width,canvas.height);
+            result=canvas.toDataURL('image/jpeg',.65);
+          }
+          if(result.length>550000)throw Error('이미지 용량이 커요. 다른 이미지로 다시 선택해 주세요.');
+          resolve(result);
+        }catch(error){reject(error);}
+      };
+      image.onerror=function(){URL.revokeObjectURL(objectUrl);reject(Error('이미지 파일을 읽지 못했습니다.'));};
+      image.src=objectUrl;
+    });
+  }
+  panelEditorGrid.addEventListener('change',async function(e){
+    if(!e.target||e.target.id!=='homeImageUpload')return;
+    var file=e.target.files&&e.target.files[0];if(!file)return;
+    var feedback=$('homeUploadFeedback');
+    if(homeUploading)return;
+    homeUploading=true;
+    if(feedback)feedback.textContent='이미지를 불러오는 중...';
+    try{
+      var dataUrl=await imageFileToDataUrl(file);
+      if(activeEditor!==0||!$('homeImageData'))return;
+      $('homeImageData').value=dataUrl;
+      updateHomeFilePreview();
+      if(feedback)feedback.textContent='이미지 준비 완료. 「현재 화면 저장」을 눌러 적용하세요.';
+    }catch(error){if(feedback)feedback.textContent=error.message;}
+    finally{homeUploading=false;e.target.value='';}
+  });
+  panelEditorGrid.addEventListener('click',function(e){
+    if(!e.target||e.target.id!=='homeImageRemove')return;
+    if($('homeImageData'))$('homeImageData').value='';
+    updateHomeFilePreview();
+    if($('homeUploadFeedback'))$('homeUploadFeedback').textContent='이미지 삭제 예정. 「현재 화면 저장」을 눌러 적용하세요.';
+  });
+
   function collectEditorDraft() {
     var panel=state.panels[activeEditor];
     panelEditorGrid.querySelectorAll('[data-edit-key]').forEach(function(el) {
@@ -2456,6 +2553,7 @@ input, textarea, [contenteditable="true"], [contenteditable=""], [contenteditabl
     });
   }
   function savePanelEditors() {
+    if(homeUploading){showStatus('panelStatus','이미지 변환 중입니다. 완료 후 다시 저장해 주세요.');return;}
     collectEditorDraft();
     saveState();
     refreshPreviews();
@@ -2470,16 +2568,38 @@ input, textarea, [contenteditable="true"], [contenteditable=""], [contenteditabl
     if(!consoleOverlay.hidden) fillConsolePopup(activeConsole);
     showStatus('panelStatus',viewNames[activeEditor]+' 화면을 기본값으로 복원했습니다.');
   }
+  var localTokenKey='ufoGithubLocalTokenRememberedV1';
+  var localRememberKey='ufoGithubRememberTokenPrefV1';
+  function saveTokenPreference(){
+    try{
+      localStorage.setItem(localRememberKey,$('ghRememberToken').checked?'1':'0');
+      if($('ghRememberToken').checked){
+        if(ghFields.token.value.trim())localStorage.setItem(localTokenKey,ghFields.token.value.trim());
+        else localStorage.removeItem(localTokenKey);
+      }else localStorage.removeItem(localTokenKey);
+    }catch(_){githubStatus('브라우저 저장소를 사용할 수 없어 토큰이 새로고침 후 사라질 수 있어요.',true);}
+  }
   function syncGithubFields(){
     ['owner','repo','branch','path'].forEach(function(k){ghFields[k].value=state.github[k]||'';});
-    ghFields.token.value=''; // Personal access tokens must never be saved or prefilled.
+    try{
+      $('ghRememberToken').checked=localStorage.getItem(localRememberKey)!=='0';
+      ghFields.token.value=$('ghRememberToken').checked?(localStorage.getItem(localTokenKey)||''):'';
+    }catch(_){ghFields.token.value='';}
+  }
+  function forgetToken(){
+    ghFields.token.value='';
+    try{localStorage.removeItem(localTokenKey);}catch(_){}
+    githubStatus('이 브라우저에 기억한 토큰을 삭제했어요.');
   }
   function saveGithubFields(){
     ['owner','repo','branch','path'].forEach(function(k){state.github[k]=ghFields[k].value.trim();});
-    state.github.token='';
-    saveState();
-    githubStatus('설정만 저장했습니다. 실제로 공개하려면 「GitHub에 게시」를 눌러주세요.');
+    state.github.token=''; // Never copy secrets to the public content object.
+    saveState();saveTokenPreference();
+    githubStatus('설정을 저장했습니다. 콘텐츠를 공개하려면 「GitHub에 게시」를 누르세요.');
   }
+  ghFields.token.addEventListener('input',saveTokenPreference);
+  $('ghRememberToken').addEventListener('change',saveTokenPreference);
+  $('ghForgetToken').addEventListener('click',forgetToken);
   var localDraftFlag='ufoLocalEditsNotPublishedV1';
   var syncedMarker='ufoRemotePublishedV1';
   var githubBusy=false;
@@ -2583,6 +2703,7 @@ input, textarea, [contenteditable="true"], [contenteditable=""], [contenteditabl
   }
   async function githubPublish(){
     if(githubBusy)return;
+    if(homeUploading){githubStatus('이미지 변환 중입니다. 끝난 뒤 게시해 주세요.',true);return;}
     setGithubBusy(true);
     $('githubCommitLink').replaceChildren();
     githubStatus('GitHub에 게시 중...');
@@ -2648,7 +2769,7 @@ input, textarea, [contenteditable="true"], [contenteditable=""], [contenteditabl
   $('githubPullBtn').addEventListener('click',function(){githubPull(true);});
   $('githubPublishBtn').addEventListener('click',githubPublish);
   $('githubResetBtn').addEventListener('click',function(){
-    state.github=copyObj(defaults.github);syncGithubFields();saveState();githubStatus('GitHub 설정값을 초기화했습니다.');
+    state.github=copyObj(defaults.github);forgetToken();syncGithubFields();saveState();githubStatus('GitHub 설정과 저장된 토큰을 초기화했습니다.');
   });
   $('panelSaveAllBtn').addEventListener('click',savePanelEditors);
   $('panelResetAllBtn').addEventListener('click',resetEditor);
